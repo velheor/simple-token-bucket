@@ -14,22 +14,31 @@ public class LoadTestRunner implements CommandLineRunner {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private static final String BASE_URL = "http://localhost:8080/api";
-    private static final int SYNC_REQUESTS = 100;
+    private static final int SYNC_THREADS = 10;
+    private static final int SYNC_REQUESTS_PER_THREAD = 10;
     private static final int ASYNC_REQUESTS = 10;
-    private static final long DELAY_MS = 3000;
+    private static final long DELAY_MS = 500;
 
     @Override
     public void run(String... args) {
         log.info("=== Load test starting ===");
-        log.info("Firing {} sync and {} async requests", SYNC_REQUESTS, ASYNC_REQUESTS);
+        log.info("Firing {} sync threads ({} requests each) and {} async requests",
+                SYNC_THREADS, SYNC_REQUESTS_PER_THREAD, ASYNC_REQUESTS);
 
-        Thread syncThread = new Thread(this::runSyncRequests, "sync-test");
+        Thread[] syncThreads = new Thread[SYNC_THREADS];
+        for (int t = 0; t < SYNC_THREADS; t++) {
+            int threadId = t;
+            syncThreads[t] = new Thread(() -> runSyncRequests(threadId), "sync-test-" + (threadId + 1));
+            syncThreads[t].start();
+        }
+
         Thread asyncThread = new Thread(this::runAsyncRequests, "async-test");
-        syncThread.start();
         asyncThread.start();
 
         try {
-            syncThread.join();
+            for (Thread thread : syncThreads) {
+                thread.join();
+            }
             asyncThread.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -50,26 +59,27 @@ public class LoadTestRunner implements CommandLineRunner {
         log.info("=== Load test complete ===");
     }
 
-    private void runSyncRequests() {
+    private void runSyncRequests(int threadId) {
         long start = System.currentTimeMillis();
         int ok = 0, limited = 0;
 
-        for (int i = 1; i <= SYNC_REQUESTS; i++) {
+        for (int i = 1; i <= SYNC_REQUESTS_PER_THREAD; i++) {
             long t0 = System.currentTimeMillis();
-            SyncResponse resp = callSync(i);
+            SyncResponse resp = callSync(threadId * SYNC_REQUESTS_PER_THREAD + i);
             long elapsed = System.currentTimeMillis() - t0;
             if ("ok".equals(resp.getStatus())) {
                 ok++;
-                log.info("[SYNC {}] OK in {} ms — result={}", i, elapsed, resp.getResult());
+                log.info("[SYNC T{}-{}] OK in {} ms — result={}", threadId + 1, i, elapsed, resp.getResult());
             } else {
                 limited++;
-                log.warn("[SYNC {}] RATE LIMITED after {} ms — {}", i, elapsed, resp.getError());
+                log.warn("[SYNC T{}-{}] RATE LIMITED after {} ms — {}", threadId + 1, i, elapsed, resp.getError());
             }
             sleep(DELAY_MS);
         }
 
         long total = System.currentTimeMillis() - start;
-        log.info("[SYNC SUMMARY] ok={}, limited={}, total={}ms, avg={}ms", ok, limited, total, total / SYNC_REQUESTS);
+        log.info("[SYNC T{} SUMMARY] ok={}, limited={}, total={}ms, avg={}ms",
+                threadId + 1, ok, limited, total, total / SYNC_REQUESTS_PER_THREAD);
     }
 
     private void runAsyncRequests() {
