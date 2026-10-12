@@ -2,4 +2,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/001-init.sql
   - include:
-      file: db/changelog/002-function.sql
+      file: db/changelog/002-bucket-function.sql
+  - include:
+      file: db/changelog/003-sync-requests.sql

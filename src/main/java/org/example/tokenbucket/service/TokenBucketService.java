@@ -57,10 +57,10 @@ public class TokenBucketService {
         return false;
     }
 
-    public BigDecimal getCurrentTokens() {
+    public Integer getCurrentTokens() {
         return jdbc.queryForObject(
                 "SELECT tokens FROM rate_limit_bucket WHERE bucket_key = ?",
-                BigDecimal.class,
+                Integer.class,
                 props.getBucketKey()
         );
     }

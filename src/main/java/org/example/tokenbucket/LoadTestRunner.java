@@ -16,7 +16,7 @@ public class LoadTestRunner implements CommandLineRunner {
     private static final String BASE_URL = "http://localhost:8080/api";
     private static final int SYNC_REQUESTS = 100;
     private static final int ASYNC_REQUESTS = 10;
-    private static final long DELAY_MS = 500;
+    private static final long DELAY_MS = 3000;
 
     @Override
     public void run(String... args) {

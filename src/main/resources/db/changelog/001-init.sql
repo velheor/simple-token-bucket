@@ -3,9 +3,9 @@
 --changeset vlad:1
 CREATE TABLE rate_limit_bucket (
     bucket_key    text PRIMARY KEY,
-    tokens        numeric NOT NULL,
-    capacity      numeric NOT NULL,
-    refill_rate   numeric NOT NULL,
+    tokens        int NOT NULL,
+    capacity      int NOT NULL,
+    refill_rate   int NOT NULL,
     last_refill   timestamptz NOT NULL DEFAULT now()
 );
 

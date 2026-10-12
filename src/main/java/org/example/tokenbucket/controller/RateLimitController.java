@@ -103,7 +103,7 @@ public class RateLimitController {
     @Data
     @NoArgsConstructor
     public static class BucketStatus {
-        private BigDecimal tokens;
+        private int tokens;
         private long syncGranted;
         private long syncDenied;
         private long asyncGranted;

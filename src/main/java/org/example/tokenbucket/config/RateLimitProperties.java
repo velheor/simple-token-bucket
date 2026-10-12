@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class RateLimitProperties {
 
     private String bucketKey = "target-service";
-    private long capacity = 3;
-    private long refillRate = 3;
+    private int capacity = 3;
+    private int refillRate = 3;
 
     private Sync sync = new Sync();
     private Async async = new Async();
@@ -21,16 +21,16 @@ public class RateLimitProperties {
     @Getter
     @Setter
     public static class Sync {
-        private long maxWaitMs = 2000;
-        private long pollIntervalMs = 20;
-        private long minTokensAfter = 0;
+        private int maxWaitMs = 2000;
+        private int pollIntervalMs = 20;
+        private int minTokensAfter = 0;
     }
 
     @Getter
     @Setter
     public static class Async {
-        private long minTokensAfter = 1;
-        private long pollDelayMs = 50;
-        private long retryDelaySeconds = 2;
+        private int minTokensAfter = 1;
+        private int pollDelayMs = 50;
+        private int retryDelaySeconds = 2;
     }
 }
